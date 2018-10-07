@@ -6,7 +6,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def lambda_handler(event, context):
+def put_hot_spot_handler(event, context):
     print('event: {}'.format(event))
     dynamodb = boto3.resource("dynamodb")
 
@@ -63,4 +63,4 @@ if __name__ == '__main__':
 
     }
     context = Context()
-    print(lambda_handler(event_dict, context))
+    print(put_hot_spot_handler(event_dict, context))

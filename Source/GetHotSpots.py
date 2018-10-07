@@ -7,7 +7,7 @@ from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
 
-def lambda_handler(event, context):
+def get_hot_spots_handler(event, context):
     print('event: {}'.format(event))
     present = datetime.datetime.now()
     two_hours_less = datetime.timedelta(hours=2)
@@ -20,29 +20,7 @@ def lambda_handler(event, context):
     lat = event['event'].get('lat')
 
     return_dict = {
-        "locations": [
-            {
-                "lat": 35.772,
-                "lng": -78.6441,
-                "locationID": 13,
-                "colorCode": 8,
-                "hash": "My first hash..."
-            },
-            {
-                "lat": 35.778,
-                "lng": -78.645,
-                "locationID": 12,
-                "colorCode": 6,
-                "hash": "A better hash..."
-            },
-            {
-                "lat": 35.779,
-                "lng": -78.6449,
-                "locationID": 123,
-                "colorCode": 5,
-                "hash": "Last hash."
-            }
-        ]
+        "locations": []
     }
     if lat:
         dynamodb = boto3.resource("dynamodb")
@@ -104,4 +82,4 @@ if __name__ == "__main__":
         }
     }
     context = {}
-    print(lambda_handler(event_dict, context))
+    print(get_hot_spots_handler(event_dict, context))

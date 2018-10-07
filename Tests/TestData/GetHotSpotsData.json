@@ -1,0 +1,30 @@
+{
+  "dynamo-response": {
+    "Items": [
+      {
+        "lat": 35.772,
+        "lng": -78.6441,
+        "locationID": 13,
+        "colorCode": 8,
+        "hash": "My first hash..."
+      }
+    ]
+  },
+  "expected-response": {
+    "locations": [
+      {
+        "lat": 35.772,
+        "lng": -78.6441,
+        "locationID": 13,
+        "colorCode": 8,
+        "hash": "My first hash..."
+      }
+    ]
+  },
+  "input-response": {
+    "event": {
+      "lat": 35.772,
+      "lng": -78.6441
+    }
+  }
+}

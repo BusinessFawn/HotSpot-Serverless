@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  HotSpotApiGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      BinaryMediaTypes:
+      - application/json
+      Description: HotSpot Api
+      EndpointConfiguration:
+        Types:
+        - REGIONAL
+      FailOnWarnings: False
+      Name: HotSpotApi
+
+  HotSpotResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt: [HotSpotApiGateway, RootResourceId]
+      PathPart: test
+      RestApiId:
+        !Ref HotSpotApiGateway
+
+  GetHotSpotsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+        - StatusCode: 200
+        PassthroughBehavior: Never
+        RequestTemplates:
+        - application/json: '#set($allParams = $input.params())\n{"event": {\n#set($params = $allParams.get("querystring"))\n#foreach($paramName in $params.keySet())\n#if($params.get($paramName) != "")\n"$paramName": $util.escapeJavaScript($params.get($paramName))\n#if($foreach.hasNext),#end\n#end\n#end\n}\n}'
+        Type: AWS
+        Uri: arn:aws:lambda:us-east-1:310054110798:function:GetHotSpots
+      OperationName: GetHotSpots
+      ResourceId:
+        !Ref HotSpotResource
+      RestApiId:
+        !Ref HotSpotApiGateway
+
+  PutHotSpotsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: PUT
+      Integration:
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+        - StatusCode: 200
+        PassthroughBehavior: Never
+        RequestTemplates:
+        - application/json: $input.json("body")
+        Type: AWS
+        Uri: arn:aws:lambda:us-east-1:310054110798:function:PutHotSpot
+      OperationName: PutHotSpots
+      ResourceId:
+        !Ref HotSpotResource
+      RestApiId:
+        !Ref HotSpotApiGateway
+
+  HotSpotDeployment:
+    DependsOn: [PutHotSpotsMethod, GetHotSpotsMethod, ]
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      Description: Deployment for the API Gateway
+      RestApiId:
+        !Ref HotSpotApiGateway
+
+  AlphaStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      DeploymentId:
+        !Ref HotSpotDeployment
+      Description: First stage for HotSpot, used for testing in the earliest stages of deployment
+      MethodSettings:
+        HttpMethod: '*'
+        ResourcePath: '*'
+        ThrottlingBurstLimit: 500
+        ThrottlingRateLimit: 100
+      RestApiId:
+        !Ref HotSpotApiGateway
+      StageName: alpha

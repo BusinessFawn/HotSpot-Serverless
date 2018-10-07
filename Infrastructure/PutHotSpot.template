@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  LambdaBucket:
+    Type: String
+    Description: The bucket where the lambda code is stored in s3.
+    Default: 4tay-lambda-resources
+  LambdaLocationKey:
+    Type: String
+    Description: The key of the zip file where the lambda code is stored in s3.
+    Default: lambdas.zip
+Resources:
+  GetHotSpotsLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        S3Bucket:
+          !Ref LambdaBucket
+        S3Key:
+          !Ref LambdaLocationKey
+      Description: Put Hot Spots lambda code
+      Environment:
+        Variables:
+          TABLE_NAME: HotSpotAlpha
+      FunctionName: PutHotSpot
+      Handler: PutHotSpot.put_hot_spot_handler
+      MemorySize: 128
+      ReservedConcurrentExecutions: 1
+      Role:
+        Fn::GetAtt: [ LambdaExecutionRole, Arn ]
+      Runtime: python3.6
+      Timeout: 10
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: PutHotSpotsRole
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:*
+            Resource: arn:aws:logs:*:*:*
+          - Effect: Allow
+            Action:
+            - dynamodb:PutItem
+            Resource: arn:aws:dynamodb:us-east-1:310054110798:table/HotSpotAlpha
+Outputs:
+  RoleArn:
+    Description: The arn of my role
+    Value:
+      !Ref LambdaExecutionRole
+  LambdaName:
+    Description: The name of my function
+    Value:
+      !Ref GetHotSpotsLambda
+  LambdaArn:
+    Description: The arn of my function
+    Value:
+      Fn::GetAtt: [ GetHotSpotsLambda, Arn ]
