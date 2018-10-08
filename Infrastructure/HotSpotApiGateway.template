@@ -1,5 +1,14 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
+Parameters:
+  PutHotSpotLambdaArn:
+    Type: String
+    Default: arn:aws:lambda:us-east-1:310054110798:function:PutHotSpot
+
+  GetHotSpotsLambdaArn:
+    Type: String
+    Default: arn:aws:lambda:us-east-1:310054110798:function:GetHotSpots
+
 Resources:
   HotSpotApiGateway:
     Type: AWS::ApiGateway::RestApi
@@ -13,15 +22,6 @@ Resources:
       FailOnWarnings: False
       Name: HotSpotApi
 
-  HotSpotResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId:
-        Fn::GetAtt: [HotSpotApiGateway, RootResourceId]
-      PathPart: test
-      RestApiId:
-        !Ref HotSpotApiGateway
-
   GetHotSpotsMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -33,12 +33,13 @@ Resources:
         - StatusCode: 200
         PassthroughBehavior: Never
         RequestTemplates:
-        - application/json: '#set($allParams = $input.params())\n{"event": {\n#set($params = $allParams.get("querystring"))\n#foreach($paramName in $params.keySet())\n#if($params.get($paramName) != "")\n"$paramName": $util.escapeJavaScript($params.get($paramName))\n#if($foreach.hasNext),#end\n#end\n#end\n}\n}'
+          application/json: '#set($allParams = $input.params())\n{"event": {\n#set($params = $allParams.get("querystring"))\n#foreach($paramName in $params.keySet())\n#if($params.get($paramName) != "")\n"$paramName": $util.escapeJavaScript($params.get($paramName))\n#if($foreach.hasNext),#end\n#end\n#end\n}\n}'
         Type: AWS
-        Uri: arn:aws:lambda:us-east-1:310054110798:function:GetHotSpots
+        Uri:
+          !Join ["", ["arn:aws:apigateway:", !Ref "AWS::Region", ":lambda:path/2015-03-31/functions/", !Ref GetHotSpotsLambdaArn, "/invocations"]]
       OperationName: GetHotSpots
       ResourceId:
-        !Ref HotSpotResource
+        !GetAtt HotSpotApiGateway.RootResourceId
       RestApiId:
         !Ref HotSpotApiGateway
 
@@ -53,12 +54,13 @@ Resources:
         - StatusCode: 200
         PassthroughBehavior: Never
         RequestTemplates:
-        - application/json: $input.json("body")
+          application/json: $input.json("body")
         Type: AWS
-        Uri: arn:aws:lambda:us-east-1:310054110798:function:PutHotSpot
+        Uri:
+          !Join ["", ["arn:aws:apigateway:", !Ref "AWS::Region", ":lambda:path/2015-03-31/functions/", !Ref PutHotSpotLambdaArn, "/invocations"]]
       OperationName: PutHotSpots
       ResourceId:
-        !Ref HotSpotResource
+        !GetAtt HotSpotApiGateway.RootResourceId
       RestApiId:
         !Ref HotSpotApiGateway
 
@@ -76,11 +78,27 @@ Resources:
       DeploymentId:
         !Ref HotSpotDeployment
       Description: First stage for HotSpot, used for testing in the earliest stages of deployment
-      MethodSettings:
-        HttpMethod: '*'
-        ResourcePath: '*'
-        ThrottlingBurstLimit: 500
-        ThrottlingRateLimit: 100
       RestApiId:
         !Ref HotSpotApiGateway
       StageName: alpha
+
+  PutHotSpotLambdaApiGatewayInvoke:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref PutHotSpotLambdaArn
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HotSpotApiGateway}/*/PUT/
+
+  GetHotSpotsLambdaApiGatewayInvoke:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref GetHotSpotsLambdaArn
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HotSpotApiGateway}/*/GET/
+
+Outputs:
+  HotSpotApiId:
+    Description: ID for the HotSpot API
+    Value: !Ref HotSpotApiGateway
