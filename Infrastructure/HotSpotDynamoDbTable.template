@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  HotSpotTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: lat_lng
+        AttributeType: S
+      - AttributeName: date_time
+        AttributeType: S
+      - AttributeName: locationID
+        AttributeType: S
+      KeySchema:
+      - AttributeName: lat_lng
+        KeyType: HASH
+      - AttributeName: date_time
+        KeyType: RANGE
+      GlobalSecondaryIndexes:
+      - IndexName: locationID-date_time-index
+        KeySchema:
+        - AttributeName: locationID
+          KeyType: HASH
+        - AttributeName: date_time
+          KeyType: RANGE
+        Projection:
+          NonKeyAttributes:
+          - lat_lng
+          ProjectionType: INCLUDE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+Outputs:
+  HotSpotDynamoDbTableName:
+    Description: Name of the HotSpot DynamoDB table
+    Value: !Ref HotSpotTable
+
+  HotSpotTableArn:
+    Description: ARN of the HotSpot DynamoDB table
+    Value: !GetAtt HotSpotTable.Arn
