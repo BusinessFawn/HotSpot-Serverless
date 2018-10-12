@@ -8,6 +8,12 @@ Parameters:
     Type: String
     Description: The key of the zip file where the lambda code is stored in s3.
     Default: lambdas.zip
+  HotSpotDynamoDbTabeArn:
+    Type: String
+    Description: The ARN of the DynamoDB table for HotSpot
+  HotSpotDynamoDbTabeName:
+    Type: String
+    Description: The name of the DynamoDB table for HotSpot
 Resources:
   PutHotSpotLambda:
     Type: "AWS::Lambda::Function"
@@ -20,8 +26,7 @@ Resources:
       Description: Put Hot Spots lambda code
       Environment:
         Variables:
-          TABLE_NAME: HotSpotAlpha
-      FunctionName: PutHotSpot
+          TABLE_NAME: !Ref HotSpotDynamoDbTabeName
       Handler: PutHotSpot.put_hot_spot_handler
       MemorySize: 128
       ReservedConcurrentExecutions: 1
@@ -55,15 +60,9 @@ Resources:
           - Effect: Allow
             Action:
             - dynamodb:PutItem
-            Resource: arn:aws:dynamodb:us-east-1:310054110798:table/HotSpotAlpha
+            - dynamodb:Query
+            Resource: !Ref HotSpotDynamoDbTabeArn
 
-  #LambdaApiGatewayInvoke:
-  #  Type: "AWS::Lambda::Permission"
-  #  Properties:
-  #    Action: "lambda:InvokeFunction"
-  #    FunctionName: !GetAtt PutHotSpotLambda.Arn
-  #    Principal: "apigateway.amazonaws.com"
-  #    SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:tre3bpbzd5/*/PUT/"
 Outputs:
   RoleArn:
     Description: The arn of my role

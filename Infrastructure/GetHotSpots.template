@@ -8,6 +8,12 @@ Parameters:
     Type: String
     Description: The key of the zip file where the lambda code is stored in s3.
     Default: lambdas.zip
+  HotSpotDynamoDbTabeArn:
+    Type: String
+    Description: The ARN of the DynamoDB table for HotSpot
+  HotSpotDynamoDbTabeName:
+    Type: String
+    Description: The name of the DynamoDB table for HotSpot
 Resources:
   GetHotSpotsLambda:
     Type: "AWS::Lambda::Function"
@@ -20,8 +26,7 @@ Resources:
       Description: Get Hot Spots lambda code
       Environment:
         Variables:
-          TABLE_NAME: HotSpotAlpha
-      FunctionName: GetHotSpots
+          TABLE_NAME: !Ref HotSpotDynamoDbTabeName
       Handler: GetHotSpots.get_hot_spots_handler
       MemorySize: 128
       ReservedConcurrentExecutions: 1
@@ -55,15 +60,8 @@ Resources:
           - Effect: Allow
             Action:
             - dynamodb:Query
-            Resource: arn:aws:dynamodb:us-east-1:310054110798:table/HotSpotAlpha
+            Resource: !Ref HotSpotDynamoDbTabeArn
 
-  #LambdaApiGatewayInvoke:
-  #  Type: "AWS::Lambda::Permission"
-  #  Properties:
-  #    Action: "lambda:InvokeFunction"
-  #    FunctionName: !GetAtt GetHotSpotsLambda.Arn
-  #    Principal: "apigateway.amazonaws.com"
-  #    SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:tre3bpbzd5/*/GET/"
 
 Outputs:
   RoleArn:
