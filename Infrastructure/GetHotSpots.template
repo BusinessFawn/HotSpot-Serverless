@@ -8,10 +8,10 @@ Parameters:
     Type: String
     Description: The key of the zip file where the lambda code is stored in s3.
     Default: lambdas.zip
-  HotSpotDynamoDbTabeArn:
+  HotSpotDynamoDbTableArn:
     Type: String
     Description: The ARN of the DynamoDB table for HotSpot
-  HotSpotDynamoDbTabeName:
+  HotSpotDynamoDbTableName:
     Type: String
     Description: The name of the DynamoDB table for HotSpot
 Resources:
@@ -26,7 +26,7 @@ Resources:
       Description: Get Hot Spots lambda code
       Environment:
         Variables:
-          TABLE_NAME: !Ref HotSpotDynamoDbTabeName
+          TABLE_NAME: !Ref HotSpotDynamoDbTableName
       Handler: GetHotSpots.get_hot_spots_handler
       MemorySize: 128
       ReservedConcurrentExecutions: 1
@@ -60,7 +60,7 @@ Resources:
           - Effect: Allow
             Action:
             - dynamodb:Query
-            Resource: !Ref HotSpotDynamoDbTabeArn
+            Resource: !Ref HotSpotDynamoDbTableArn
 
 
 Outputs:

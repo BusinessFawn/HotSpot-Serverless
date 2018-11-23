@@ -1,5 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
+Parameters:
+  HotSpotDynamoTableLocaionIndex:
+    Type: String
+    Description: Name of the Location ID index
+    Default: locationID-date_time-index
+
 Resources:
   HotSpotTable:
     Type: AWS::DynamoDB::Table
@@ -17,7 +23,7 @@ Resources:
       - AttributeName: date_time
         KeyType: RANGE
       GlobalSecondaryIndexes:
-      - IndexName: locationID-date_time-index
+      - IndexName: !Ref HotSpotDynamoTableLocaionIndex
         KeySchema:
         - AttributeName: locationID
           KeyType: HASH

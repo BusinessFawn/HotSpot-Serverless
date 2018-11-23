@@ -13,7 +13,7 @@ def put_hot_spot_handler(event, context):
     table = dynamodb.Table(os.getenv('TABLE_NAME'))
     lat = Decimal(str(event.get('lat', 35.7721)))
     lng = Decimal(str(event.get('lng', -78.6441)))
-    location_id = event.get('locationID', '')
+    location_id = str(event.get('locationID', ''))
     input_hash = str(event.get('hash', 'no hash'))
     print("lat, lng: {} {}".format(lat, lng))
     date_time = datetime.datetime.now()
@@ -58,12 +58,15 @@ def put_hot_spot_handler(event, context):
         print("error: {}".format(e.response['Error']['Message']))
 
     if response:
-        return {
+        return_dict = {
             "response": "success",
             "locationID": location_id
         }
     else:
-        return {"message": "error"}
+        return_dict = {"message": "error"}
+
+    print('return_dict: {}'.format(return_dict))
+    return return_dict
 
 
 if __name__ == '__main__':
