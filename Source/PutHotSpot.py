@@ -14,10 +14,10 @@ def put_hot_spot_handler(event, context):
     lat = Decimal(str(event.get('lat', 35.7721)))
     lng = Decimal(str(event.get('lng', -78.6441)))
     location_id = str(event.get('locationID', ''))
-    input_hash = str(event.get('hash', 'no hash'))
+    input_hash = str(event.get('hash', ''))
     print("lat, lng: {} {}".format(lat, lng))
     date_time = datetime.datetime.now()
-    color_code = event.get('colorCode', '1')
+    color_code = event.get('colorCode', 1)
 
     key = '{:.1f}_{:.1f}'.format(lat, lng)
     print('key: {}'.format(key))
@@ -42,16 +42,18 @@ def put_hot_spot_handler(event, context):
         location_id = context.aws_request_id
 
     try:
+        new_put_item = {
+            'lat_lng': key,
+            'lat': lat,
+            'lng': lng,
+            'date_time': "{}".format(date_time),
+            'locationID': location_id,
+            'colorCode': color_code
+        }
+        if input_hash:
+            new_put_item['hash'] = input_hash
         response = table.put_item(
-            Item={
-                'lat_lng': key,
-                'lat': lat,
-                'lng': lng,
-                'date_time': "{}".format(date_time),
-                'locationID': location_id,
-                'hash': input_hash,
-                'colorCode': color_code
-            }
+            Item=new_put_item
         )
         print("response: {}".format(response))
     except ClientError as e:
