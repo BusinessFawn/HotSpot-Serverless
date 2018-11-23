@@ -32,13 +32,11 @@ def get_hot_spots_handler(event, context):
         lng = Decimal('{:.1f}'.format(lng))
         view_range = event['event'].get('range', 0)
         print('lat: {}, lng: {}'.format(lat, lng))
-        lat_lng_key = Key('lat_lng').eq('{}_{}'.format(lat, lng))
         date_key = Key('date_time').gt(oldest_record)
         print('key: {}_{}'.format(lat, lng))
         response = {"Items": []}
 
         try:
-            # if view_range:
             floor = view_range
             outter = 0 - view_range
             print('floor: {}'.format(floor))
