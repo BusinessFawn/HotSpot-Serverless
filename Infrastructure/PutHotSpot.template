@@ -65,6 +65,7 @@ Resources:
             Action:
             - dynamodb:PutItem
             - dynamodb:Query
+            - dynamodb:DeleteItem
             Resource: !Ref HotSpotDynamoDbTalbeArn
           - Effect: Allow
             Action:
