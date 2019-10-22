@@ -5,24 +5,23 @@ from decimal import Decimal
 import boto3
 from botocore.exceptions import ClientError
 
-dynamodb = boto3.resource("dynamodb")
-table = dynamodb.Table(os.getenv('TABLE_NAME'))
-
 
 def put_hot_spot_handler(event, context):
+    dynamodb = boto3.resource("dynamodb")
+    table = dynamodb.Table(os.getenv('TABLE_NAME'))
     print('starting to read.. event: {}'.format(event))
     updated_existing_item = False
     if event.get('locationID', ''):
         print('found locationID: {}'.format(event.get('locationID')))
-        updated_existing_item = update_existing_item(event)
+        updated_existing_item = update_existing_item(event, table)
 
     if not updated_existing_item:
         print('item not updatedable, moving on with new locationID')
         event['locationID'] = context.aws_request_id
-    return put_new_location(event)
+    return put_new_location(event, table)
 
 
-def update_existing_item(input_dict: dict):
+def update_existing_item(input_dict: dict, table):
     lat, lng, location_id, input_hash, date_time, color_code, key = unpack_values(input_dict)
 
     print('looking for a location: {}'.format(location_id))
@@ -46,7 +45,7 @@ def update_existing_item(input_dict: dict):
     return True
 
 
-def put_new_location(input_dict: dict):
+def put_new_location(input_dict: dict, table):
     lat, lng, location_id, input_hash, date_time, color_code, key = unpack_values(input_dict)
     response = ''
     try:
